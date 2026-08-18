@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Listing Route Guard: Block ROOM_SEEKER from listing properties
+    // Listing Route Guard: Only allow listing properties for property/host roles
     if (path.startsWith('/list')) {
       const { data: userRoles } = await supabase
         .from('user_roles')
@@ -55,9 +55,10 @@ export async function middleware(request: NextRequest) {
         .eq('user_id', user.id)
 
       const roles = userRoles?.map(r => r.role) || []
-      const isOnlyRoomSeeker = roles.length === 1 && roles[0] === 'ROOM_SEEKER'
+      const allowedListingRoles = ['PROPERTY_OWNER', 'PROPERTY_AGENT', 'PROPERTY_MANAGER', 'ROOMMATE', 'ADMIN']
+      const isAllowed = roles.some(r => allowedListingRoles.includes(r))
 
-      if (isOnlyRoomSeeker) {
+      if (!isAllowed) {
         const url = request.nextUrl.clone()
         url.pathname = '/search'
         return NextResponse.redirect(url)

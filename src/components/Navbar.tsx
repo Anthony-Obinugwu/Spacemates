@@ -17,9 +17,8 @@ export async function Navbar() {
     const roles = userRoles?.map(r => r.role) || []
     role = roles.find(r => r === 'ADMIN') || roles[0]
 
-    if (roles.length === 1 && roles[0] === 'ROOM_SEEKER') {
-      canListProperty = false
-    }
+    const allowedListingRoles = ['PROPERTY_OWNER', 'PROPERTY_AGENT', 'PROPERTY_MANAGER', 'ROOMMATE', 'ADMIN']
+    canListProperty = roles.some(r => allowedListingRoles.includes(r))
   }
 
   return (
