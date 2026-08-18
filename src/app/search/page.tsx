@@ -1,13 +1,42 @@
-import Link from 'next/link';
+import Link from 'next/link'
+import { getRankedListingsAction } from '@/app/actions/search'
 
-export default function Search() {
+export default async function Search() {
+  const listings = await getRankedListingsAction()
+
+  // Demo fallback listings if DB has no published listings yet
+  const displayListings = listings.length > 0 ? listings : [
+    {
+      id: 'demo-1',
+      title: 'Private En-suite Bedroom in Lekki Phase 1',
+      listing_type: 'ROOM_AVAILABLE',
+      compatibilityScore: 92,
+      public_properties: {
+        city: 'Lagos',
+        state: 'Lagos',
+        property_type: 'Apartment'
+      }
+    },
+    {
+      id: 'demo-2',
+      title: 'Shared Apartment with Gym in Yaba',
+      listing_type: 'ROOMMATE_WANTED',
+      compatibilityScore: 85,
+      public_properties: {
+        city: 'Lagos',
+        state: 'Lagos',
+        property_type: 'Apartment'
+      }
+    }
+  ]
+
   return (
     <main className="flex-1 max-w-7xl mx-auto w-full p-6 py-12 relative flex flex-col h-[calc(100vh-80px)]">
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gradient">Discover Listings</h1>
-          <p className="text-muted mt-1">Find rooms and roommates that match your lifestyle.</p>
+          <p className="text-muted mt-1">Find rooms and roommates ranked by your PostgreSQL compatibility score.</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
           <input type="text" placeholder="Search locations..." className="p-3 px-5 rounded-full bg-surface border border-border outline-none focus:border-primary flex-1 sm:w-64" />
@@ -49,70 +78,48 @@ export default function Search() {
           </div>
           
           <div className="glass-panel p-6 rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
-            <h3 className="font-bold mb-2 text-primary">Compatibility Mode</h3>
-            <p className="text-xs text-muted mb-4">Results are currently sorted by your lifestyle compatibility score.</p>
-            <button className="w-full py-2 rounded-xl bg-primary/20 text-primary font-bold border border-primary/30 text-sm hover:bg-primary hover:text-white transition-colors">
+            <h3 className="font-bold mb-2 text-primary">Compatibility RPC Engine</h3>
+            <p className="text-xs text-muted mb-4">PostgreSQL RPC dynamically calculates match percentages and hides hard dealbreakers.</p>
+            <Link href="/onboarding" className="inline-block w-full text-center py-2 rounded-xl bg-primary/20 text-primary font-bold border border-primary/30 text-sm hover:bg-primary hover:text-white transition-colors">
               Edit Preferences
-            </button>
+            </Link>
           </div>
         </div>
 
         {/* Listings Grid */}
         <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 overflow-y-auto pb-12 content-start">
           
-          {/* Mock Listing Card 1 */}
-          <Link href="/search/1" className="glass-panel group rounded-3xl border border-border overflow-hidden flex flex-col hover:border-primary/50 transition-colors cursor-pointer shadow-lg">
-            <div className="h-48 bg-surface relative w-full overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/10">
-                92% Match
-              </div>
-            </div>
-            <div className="p-5 flex flex-col flex-1">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-lg leading-tight line-clamp-1">Private En-suite Bedroom</h3>
-              </div>
-              <p className="text-sm text-muted mb-4 line-clamp-1">Lekki Phase 1, Lagos</p>
-              
-              <div className="mt-auto">
-                <div className="flex items-end gap-1 mb-3">
-                  <span className="text-2xl font-extrabold text-foreground">₦1.2M</span>
-                  <span className="text-sm text-muted mb-1">/year</span>
-                </div>
-                <div className="flex gap-2">
-                  <span className="text-xs font-medium px-2 py-1 bg-surface border border-border rounded text-muted">Room</span>
-                  <span className="text-xs font-medium px-2 py-1 bg-surface border border-border rounded text-muted">Private Bath</span>
+          {displayListings.map((item: any) => (
+            <Link key={item.id} href={`/search/${item.id}`} className="glass-panel group rounded-3xl border border-border overflow-hidden flex flex-col hover:border-primary/50 transition-colors cursor-pointer shadow-lg">
+              <div className="h-48 bg-surface relative w-full overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+                  {item.compatibilityScore}% Match
                 </div>
               </div>
-            </div>
-          </Link>
-
-          {/* Mock Listing Card 2 */}
-          <Link href="/search/2" className="glass-panel group rounded-3xl border border-border overflow-hidden flex flex-col hover:border-primary/50 transition-colors cursor-pointer shadow-lg">
-            <div className="h-48 bg-surface relative w-full overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/10">
-                85% Match
-              </div>
-            </div>
-            <div className="p-5 flex flex-col flex-1">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-lg leading-tight line-clamp-1">Shared Apartment with Gym</h3>
-              </div>
-              <p className="text-sm text-muted mb-4 line-clamp-1">Yaba, Lagos</p>
-              
-              <div className="mt-auto">
-                <div className="flex items-end gap-1 mb-3">
-                  <span className="text-2xl font-extrabold text-foreground">₦800k</span>
-                  <span className="text-sm text-muted mb-1">/year</span>
+              <div className="p-5 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-lg leading-tight line-clamp-1">{item.title}</h3>
                 </div>
-                <div className="flex gap-2">
-                  <span className="text-xs font-medium px-2 py-1 bg-surface border border-border rounded text-muted">Room</span>
-                  <span className="text-xs font-medium px-2 py-1 bg-surface border border-border rounded text-muted">Shared Bath</span>
+                <p className="text-sm text-muted mb-4 line-clamp-1">
+                  {item.public_properties?.city || 'Lagos'}, {item.public_properties?.state || 'Nigeria'}
+                </p>
+                
+                <div className="mt-auto">
+                  <div className="flex items-end gap-1 mb-3">
+                    <span className="text-2xl font-extrabold text-foreground">₦1.2M</span>
+                    <span className="text-sm text-muted mb-1">/year</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-xs font-medium px-2 py-1 bg-surface border border-border rounded text-muted">
+                      {item.listing_type || 'Room'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
 
         </div>
       </div>
