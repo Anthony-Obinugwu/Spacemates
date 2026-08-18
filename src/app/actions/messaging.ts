@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
 export async function sendMessageAction(conversationId: string, content: string) {
@@ -49,6 +50,40 @@ export async function sendMessageAction(conversationId: string, content: string)
 
   revalidatePath('/messages')
   return { success: true, message: data?.[0] }
+}
+
+export async function startConversationAction(targetUserId: string, listingId?: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  // 1. Create a new conversation row
+  const { data: newConv, error: convError } = await supabase
+    .from('conversations')
+    .insert({
+      listing_id: listingId || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (convError || !newConv) {
+    // Demo fallback redirect if DB tables are empty
+    redirect('/messages')
+  }
+
+  // 2. Add both current user and target user as participants
+  await supabase.from('conversation_participants').insert([
+    { conversation_id: newConv.id, user_id: user.id },
+    { conversation_id: newConv.id, user_id: targetUserId },
+  ])
+
+  revalidatePath('/messages')
+  redirect(`/messages?conversationId=${newConv.id}`)
 }
 
 export async function createReportAction(targetType: 'USER' | 'LISTING' | 'MESSAGE', targetId: string, reason: string) {
