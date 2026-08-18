@@ -1,12 +1,23 @@
--- PostgreSQL Trigger to Automatically Seed Profiles & Roles on Supabase Auth Sign Up
+-- Fix schema constraints and trigger for Supabase Auth user registration
 
+-- 1. Ensure full_name column exists on public.profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+
+-- 2. Ensure USER, ADMIN, MODERATOR roles exist in public.roles table to satisfy FK constraints
+INSERT INTO public.roles (id, description) VALUES
+  ('USER', 'Standard User'),
+  ('ADMIN', 'Administrator'),
+  ('MODERATOR', 'Content Moderator')
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. PostgreSQL Trigger Function to automatically seed profiles & roles on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- 1. Create matching row in public.profiles
+  -- Create matching row in public.profiles
   INSERT INTO public.profiles (
     id,
-    email,
+    display_name,
     full_name,
     account_status,
     profile_completion,
@@ -15,7 +26,7 @@ BEGIN
   )
   VALUES (
     NEW.id,
-    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     'PENDING',
     0,
@@ -24,7 +35,7 @@ BEGIN
   )
   ON CONFLICT (id) DO NOTHING;
 
-  -- 2. Create default USER role in public.user_roles
+  -- Create default USER role in public.user_roles
   INSERT INTO public.user_roles (
     user_id,
     role,
