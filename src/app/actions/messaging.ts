@@ -11,6 +11,24 @@ export async function sendMessageAction(conversationId: string, content: string)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
+  
+  // Validate if conversationId is a standard UUID format
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId)
+
+  // Handle demo / mock conversation fallback without throwing DB syntax errors
+  if (!isUUID) {
+    return { 
+      success: true, 
+      message: {
+        id: `demo-msg-${Date.now()}`,
+        conversation_id: conversationId,
+        sender_id: user?.id || 'current-user',
+        content: content.trim(),
+        created_at: new Date().toISOString(),
+      } 
+    }
+  }
+
   if (!user) {
     return { error: 'Not authenticated' }
   }
@@ -81,7 +99,7 @@ export async function getConversationsAction() {
 
   const { data: conversations } = await supabase
     .from('conversations')
-    .select('*, conversation_participants(user_id, profiles(full_name, email)), messages(content, created_at)')
+    .select('*, conversation_participants(user_id, profiles(full_name, display_name)), messages(content, created_at)')
     .in('id', conversationIds)
 
   return conversations || []
@@ -92,7 +110,7 @@ export async function getMessagesAction(conversationId: string) {
 
   const { data: messages } = await supabase
     .from('messages')
-    .select('*, profiles(full_name)')
+    .select('*, profiles(full_name, display_name)')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
 

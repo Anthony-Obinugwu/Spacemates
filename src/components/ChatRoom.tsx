@@ -10,7 +10,7 @@ interface Message {
   sender_id: string
   content: string
   created_at: string
-  profiles?: { full_name: string }
+  profiles?: { full_name?: string; display_name?: string }
 }
 
 interface ChatRoomProps {
@@ -47,6 +47,9 @@ export function ChatRoom({
 
   // Supabase Realtime WebSocket Subscription
   useEffect(() => {
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId)
+    if (!isUUID) return // Skip WebSocket channel for demo conversation IDs
+
     const channel = supabase
       .channel(`chat_room:${conversationId}`)
       .on(
@@ -76,8 +79,9 @@ export function ChatRoom({
     e.preventDefault()
     if (!inputText.trim()) return
 
+    const tempId = `temp-${Date.now()}`
     const tempMsg: Message = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       conversation_id: conversationId,
       sender_id: currentUserId,
       content: inputText.trim(),
@@ -89,8 +93,10 @@ export function ChatRoom({
     setInputText('')
 
     const res = await sendMessageAction(conversationId, sentText)
-    if (res.error) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempMsg.id))
+    if (res?.error) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
+    } else if (res?.message) {
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? (res.message as Message) : m)))
     }
   }
 
@@ -124,7 +130,7 @@ export function ChatRoom({
           <div>
             <h2 className="font-bold text-lg leading-tight">{recipientName}</h2>
             <p className="text-xs text-green-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Live WebSocket Connected
+              <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Connected
             </p>
           </div>
         </div>
@@ -142,7 +148,7 @@ export function ChatRoom({
       {/* Messages Feed */}
       <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 relative">
         {messages.map((msg) => {
-          const isMe = msg.sender_id === currentUserId
+          const isMe = msg.sender_id === currentUserId || msg.sender_id === 'current-user'
           return (
             <div
               key={msg.id}
