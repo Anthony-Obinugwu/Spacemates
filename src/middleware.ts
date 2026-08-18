@@ -25,12 +25,27 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   if (user) {
-    // If the user is logged in, fetch their profile status
+    // If the user is logged in, fetch their profile status and role
     const { data: profile } = await supabase
       .from('profiles')
       .select('account_status, profile_completion')
       .eq('id', user.id)
       .single()
+
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    // Admin Route Guard
+    if (path.startsWith('/admin')) {
+      if (roleData?.role !== 'ADMIN') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
+    }
 
     const isMarketplaceRoute = path.startsWith('/search') || path.startsWith('/list') || path.startsWith('/profile') || path.startsWith('/messages');
     
@@ -49,7 +64,7 @@ export async function middleware(request: NextRequest) {
     }
   } else {
     // Redirect unauthenticated users trying to access protected routes
-    const isProtectedRoute = path.startsWith('/search') || path.startsWith('/list') || path.startsWith('/profile') || path.startsWith('/messages') || path === '/onboarding'
+    const isProtectedRoute = path.startsWith('/search') || path.startsWith('/list') || path.startsWith('/profile') || path.startsWith('/messages') || path.startsWith('/admin') || path === '/onboarding'
     
     if (isProtectedRoute) {
       const url = request.nextUrl.clone()
