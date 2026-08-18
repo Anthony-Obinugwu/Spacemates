@@ -47,6 +47,23 @@ export async function middleware(request: NextRequest) {
       }
     }
 
+    // Listing Route Guard: Block ROOM_SEEKER from listing properties
+    if (path.startsWith('/list')) {
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+
+      const roles = userRoles?.map(r => r.role) || []
+      const isOnlyRoomSeeker = roles.length === 1 && roles[0] === 'ROOM_SEEKER'
+
+      if (isOnlyRoomSeeker) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/search'
+        return NextResponse.redirect(url)
+      }
+    }
+
     const isMarketplaceRoute = path.startsWith('/search') || path.startsWith('/list') || path.startsWith('/profile') || path.startsWith('/messages');
     
     // Strict onboarding guard

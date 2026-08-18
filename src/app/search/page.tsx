@@ -11,6 +11,7 @@ export default async function Search() {
       title: 'Private En-suite Bedroom in Lekki Phase 1',
       listing_type: 'ROOM_AVAILABLE',
       compatibilityScore: 92,
+      isVerifiedHost: true,
       public_properties: {
         city: 'Lagos',
         state: 'Lagos',
@@ -22,6 +23,7 @@ export default async function Search() {
       title: 'Shared Apartment with Gym in Yaba',
       listing_type: 'ROOMMATE_WANTED',
       compatibilityScore: 85,
+      isVerifiedHost: false,
       public_properties: {
         city: 'Lagos',
         state: 'Lagos',
@@ -93,11 +95,22 @@ export default async function Search() {
             <Link key={item.id} href={`/search/${item.id}`} className="glass-panel group rounded-3xl border border-border overflow-hidden flex flex-col hover:border-primary/50 transition-colors cursor-pointer shadow-lg">
               <div className="h-48 bg-surface relative w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1 shadow-md">
-                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
-                  {item.compatibilityScore}% Match
+                
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  <div className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1 shadow-md self-start">
+                    <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+                    {item.compatibilityScore}% Match
+                  </div>
+
+                  {item.isVerifiedHost && (
+                    <div className="px-3 py-1 rounded-full bg-primary/90 backdrop-blur-md text-white text-[11px] font-extrabold border border-primary-hover flex items-center gap-1 shadow-md self-start">
+                      ✓ Verified Host
+                    </div>
+                  )}
                 </div>
               </div>
+              
               <div className="p-5 flex flex-col flex-1">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-lg leading-tight line-clamp-1">{item.title}</h3>

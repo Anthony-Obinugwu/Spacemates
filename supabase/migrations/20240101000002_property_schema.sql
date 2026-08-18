@@ -86,7 +86,7 @@ SELECT
   created_at,
   updated_at
 FROM public.properties
-WHERE status = 'VERIFIED';
+WHERE status IN ('ACTIVE', 'VERIFIED');
 
 -- Enable RLS
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;

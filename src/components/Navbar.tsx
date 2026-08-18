@@ -8,12 +8,18 @@ export async function Navbar() {
 
   let profile = null
   let role = null
+  let canListProperty = true
 
   if (user) {
     const { data: p } = await supabase.from('profiles').select('full_name, account_status').eq('id', user.id).single()
-    const { data: r } = await supabase.from('user_roles').select('role').eq('user_id', user.id).single()
+    const { data: userRoles } = await supabase.from('user_roles').select('role').eq('user_id', user.id)
     profile = p
-    role = r?.role
+    const roles = userRoles?.map(r => r.role) || []
+    role = roles.find(r => r === 'ADMIN') || roles[0]
+
+    if (roles.length === 1 && roles[0] === 'ROOM_SEEKER') {
+      canListProperty = false
+    }
   }
 
   return (
@@ -28,7 +34,7 @@ export async function Navbar() {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
           <Link href="/search" className="hover:text-foreground transition-colors">Find Roommates & Flats</Link>
-          <Link href="/list" className="hover:text-foreground transition-colors">List a Property</Link>
+          {canListProperty && <Link href="/list" className="hover:text-foreground transition-colors">List a Property</Link>}
           {user && <Link href="/applications" className="hover:text-foreground transition-colors">Applications</Link>}
           {user && <Link href="/messages" className="hover:text-foreground transition-colors">Messages</Link>}
           {role === 'ADMIN' && <Link href="/admin" className="text-red-400 font-bold hover:underline">Admin Dashboard</Link>}
