@@ -72,7 +72,7 @@ CREATE TABLE public.listing_expenses (
 );
 
 -- Create Public Properties View (Address Privacy)
-CREATE VIEW public.public_properties AS
+CREATE OR REPLACE VIEW public.public_properties WITH (security_invoker = true) AS
 SELECT 
   id,
   title,
