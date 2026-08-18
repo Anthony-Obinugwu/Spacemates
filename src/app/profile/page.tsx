@@ -1,4 +1,7 @@
-import Link from 'next/link';
+'use client'
+
+import Link from 'next/link'
+import { FileUpload } from '@/components/FileUpload'
 
 export default function ProfileDashboard() {
   return (
@@ -6,7 +9,7 @@ export default function ProfileDashboard() {
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 blur-[100px] pointer-events-none" />
       
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold">Profile Dashboard</h1>
+        <h1 className="text-4xl font-bold text-gradient">Profile Dashboard</h1>
         <button className="px-6 py-2 rounded-full bg-surface hover:bg-surface-hover border border-border font-medium transition-colors">
           Edit Profile
         </button>
@@ -57,23 +60,22 @@ export default function ProfileDashboard() {
             </div>
           </div>
           
+          {/* Identity & KYC Verification Upload Section */}
           <div className="glass-panel p-8 rounded-3xl border border-border shadow-lg">
             <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
-              <h3 className="text-xl font-bold">Private Information</h3>
+              <h3 className="text-xl font-bold">Identity & Verification Documents</h3>
             </div>
             <p className="text-sm text-muted mb-6 bg-surface p-4 rounded-xl border border-border">
-              This information is protected and never shared publicly.
+              Documents are stored securely in a private, encrypted bucket and accessible strictly to you and platform moderators.
             </p>
-            <ul className="space-y-4">
-              <li className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-surface/50 p-4 rounded-2xl border border-border">
-                <span className="text-muted text-sm mb-1 sm:mb-0">Email Address</span>
-                <span className="font-medium">alex.mercer@example.com</span>
-              </li>
-              <li className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-surface/50 p-4 rounded-2xl border border-border">
-                <span className="text-muted text-sm mb-1 sm:mb-0">Date of Birth</span>
-                <span className="font-medium">1994-11-20</span>
-              </li>
-            </ul>
+            
+            <FileUpload
+              bucket="kyc-documents"
+              maxFiles={2}
+              label="Upload Government ID (National ID, Drivers License, or Passport)"
+              allowedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+              maxSizeBytes={10 * 1024 * 1024}
+            />
           </div>
         </div>
       </div>
