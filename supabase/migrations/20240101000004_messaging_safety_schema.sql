@@ -105,11 +105,11 @@ BEGIN
   PERFORM cron.schedule(
     'enforce-data-retention-30d',
     '0 0 * * *', -- Everyday at midnight
-    $$
+    $cron$
       DELETE FROM public.profiles 
       WHERE account_status = 'DELETED' 
       AND updated_at < NOW() - INTERVAL '30 days';
-    $$
+    $cron$
   );
 EXCEPTION
   WHEN undefined_object THEN
